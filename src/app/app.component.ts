@@ -1,11 +1,11 @@
-import { AfterViewInit, Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DoCheck, ElementRef, HostListener, NgZone, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements AfterViewInit {
+export class AppComponent implements AfterViewInit, DoCheck {
   @ViewChild('canvas', {static: false}) canvas: ElementRef<HTMLCanvasElement>;
   canvasContext: CanvasRenderingContext2D;
 
@@ -31,7 +31,7 @@ export class AppComponent implements AfterViewInit {
 
   bricks = [];
 
-  constructor() {
+  constructor(private ngZone: NgZone) {
   }
 
   ngAfterViewInit() {
@@ -64,7 +64,14 @@ export class AppComponent implements AfterViewInit {
       }
     }
 
-    this.draw();
+    this.ngZone.runOutsideAngular(() => this.draw());
+  }
+
+
+  counter=0;
+  ngDoCheck() {
+    this.counter++;
+    console.log(this.counter);
   }
 
   @HostListener('window:keydown', ['$event'])
