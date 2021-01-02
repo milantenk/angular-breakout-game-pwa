@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, DoCheck, ElementRef, HostListener, NgZone, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  DoCheck,
+  ElementRef,
+  HostListener,
+  NgZone,
+  ViewChild
+} from '@angular/core';
+
+import { Brick } from './core/brick';
 
 @Component({
   selector: 'app-root',
@@ -6,7 +16,8 @@ import { AfterViewInit, Component, DoCheck, ElementRef, HostListener, NgZone, Vi
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewInit, DoCheck {
-  @ViewChild('canvas', {static: false}) canvas: ElementRef<HTMLCanvasElement>;
+  @ViewChild('canvas', { static: false }) canvasElementRef: ElementRef<HTMLCanvasElement>;
+  canvas: HTMLCanvasElement;
   canvasContext: CanvasRenderingContext2D;
 
   ballRadius: number;
@@ -29,21 +40,22 @@ export class AppComponent implements AfterViewInit, DoCheck {
   score: number;
   lives: number;
 
-  bricks = [];
+  bricks: Brick[][] = [];
 
   constructor(private ngZone: NgZone) {
   }
 
   ngAfterViewInit() {
-    this.canvasContext = this.canvas.nativeElement.getContext('2d') as CanvasRenderingContext2D;
+    this.canvas = this.canvasElementRef.nativeElement;
+    this.canvasContext = this.canvas.getContext('2d') as CanvasRenderingContext2D;
     this.ballRadius = 10;
-    this.x = this.canvas.nativeElement.width / 2;
-    this.y = this.canvas.nativeElement.height - 30;
+    this.x = this.canvas.width / 2;
+    this.y = this.canvas.height - 30;
     this.dx = 2;
     this.dy = -2;
     this.paddleHeight = 10;
     this.paddleWidth = 75;
-    this.paddleX = (this.canvas.nativeElement.width - this.paddleWidth) / 2;
+    this.paddleX = (this.canvas.width - this.paddleWidth) / 2;
     this.rightPressed = false;
     this.leftPressed = false;
     this.brickRowCount = 5;
@@ -57,10 +69,10 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.lives = 3;
 
     // TODO: use array functions instead of nested for loops
-    for (var c = 0; c < this.brickColumnCount; c++) {
+    for (let c = 0; c < this.brickColumnCount; c++) {
       this.bricks[c] = [];
-      for (var r = 0; r < this.brickRowCount; r++) {
-        this.bricks[c][r] = { x: 0, y: 0, status: 1 };
+      for (let r = 0; r < this.brickRowCount; r++) {
+        this.bricks[c][r] = { x: 0, y: 0, status: 1 } as Brick;
       }
     }
 
@@ -68,7 +80,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
   }
 
 
-  counter=0;
+  counter = 0;
   ngDoCheck() {
     this.counter++;
     console.log(this.counter);
@@ -96,16 +108,16 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   @HostListener('window:mousemove', ['$event'])
   handleMouseMove(event: MouseEvent) {
-    let relativeX = event.clientX - this.canvas.nativeElement.offsetLeft;
-    if (relativeX > 0 && relativeX < this.canvas.nativeElement.width) {
+    let relativeX = event.clientX - this.canvas.offsetLeft;
+    if (relativeX > 0 && relativeX < this.canvas.width) {
       this.paddleX = relativeX - this.paddleWidth / 2;
     }
   }
 
   collisionDetection() {
-    for (var c = 0; c < this.brickColumnCount; c++) {
-      for (var r = 0; r < this.brickRowCount; r++) {
-        var b = this.bricks[c][r];
+    for (let c = 0; c < this.brickColumnCount; c++) {
+      for (let r = 0; r < this.brickRowCount; r++) {
+        let b = this.bricks[c][r];
         if (b.status == 1) {
           if (this.x > b.x && this.x < b.x + this.brickWidth && this.y > b.y && this.y < b.y + this.brickHeight) {
             this.dy = -this.dy;
@@ -113,7 +125,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
             this.score++;
             if (this.score == this.brickRowCount * this.brickColumnCount) {
               alert("YOU WIN, CONGRATS!");
-              document.location.reload(); // TODO: remove
+              document.location.reload();
             }
           }
         }
@@ -131,7 +143,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   drawPaddle() {
     this.canvasContext.beginPath();
-    this.canvasContext.rect(this.paddleX, this.canvas.nativeElement.height - this.paddleHeight, this.paddleWidth, this.paddleHeight);
+    this.canvasContext.rect(this.paddleX, this.canvas.height - this.paddleHeight, this.paddleWidth, this.paddleHeight);
     this.canvasContext.fillStyle = "#0095DD";
     this.canvasContext.fill();
     this.canvasContext.closePath();
@@ -164,11 +176,11 @@ export class AppComponent implements AfterViewInit, DoCheck {
   drawLives() {
     this.canvasContext.font = "16px Arial";
     this.canvasContext.fillStyle = "#0095DD";
-    this.canvasContext.fillText("Lives: " + this.lives, this.canvas.nativeElement.width - 65, 20);
+    this.canvasContext.fillText("Lives: " + this.lives, this.canvas.width - 65, 20);
   }
 
   draw() {
-    this.canvasContext.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+    this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.drawBricks();
     this.drawBall();
     this.drawPaddle();
@@ -176,13 +188,13 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.drawLives();
     this.collisionDetection();
 
-    if (this.x + this.dx > this.canvas.nativeElement.width - this.ballRadius || this.x + this.dx < this.ballRadius) {
+    if (this.x + this.dx > this.canvas.width - this.ballRadius || this.x + this.dx < this.ballRadius) {
       this.dx = -this.dx;
     }
     if (this.y + this.dy < this.ballRadius) {
       this.dy = -this.dy;
     }
-    else if (this.y + this.dy > this.canvas.nativeElement.height - this.ballRadius) {
+    else if (this.y + this.dy > this.canvas.height - this.ballRadius) {
       if (this.x > this.paddleX && this.x < this.paddleX + this.paddleWidth) {
         this.dy = -this.dy;
       }
@@ -193,16 +205,16 @@ export class AppComponent implements AfterViewInit, DoCheck {
           document.location.reload();
         }
         else {
-          this.x = this.canvas.nativeElement.width / 2;
-          this.y = this.canvas.nativeElement.height - 30;
+          this.x = this.canvas.width / 2;
+          this.y = this.canvas.height - 30;
           this.dx = 3;
           this.dy = -3;
-          this.paddleX = (this.canvas.nativeElement.width - this.paddleWidth) / 2;
+          this.paddleX = (this.canvas.width - this.paddleWidth) / 2;
         }
       }
     }
 
-    if (this.rightPressed && this.paddleX < this.canvas.nativeElement.width - this.paddleWidth) {
+    if (this.rightPressed && this.paddleX < this.canvas.width - this.paddleWidth) {
       this.paddleX += 7;
     }
     else if (this.leftPressed && this.paddleX > 0) {
