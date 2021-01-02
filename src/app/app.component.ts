@@ -58,10 +58,10 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.paddleX = (this.canvas.width - this.paddleWidth) / 2;
     this.rightPressed = false;
     this.leftPressed = false;
-    this.brickRowCount = 5;
+    this.brickRowCount = 7;
     this.brickColumnCount = 3;
-    this.brickWidth = 75;
-    this.brickHeight = 20;
+    this.brickWidth = 51;
+    this.brickHeight = 15;
     this.brickPadding = 10;
     this.brickOffsetTop = 30;
     this.brickOffsetLeft = 30;
@@ -136,7 +136,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
   drawBall() {
     this.canvasContext.beginPath();
     this.canvasContext.arc(this.x, this.y, this.ballRadius, 0, Math.PI * 2);
-    this.canvasContext.fillStyle = "#0095DD";
+    this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fill();
     this.canvasContext.closePath();
   }
@@ -144,7 +144,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
   drawPaddle() {
     this.canvasContext.beginPath();
     this.canvasContext.rect(this.paddleX, this.canvas.height - this.paddleHeight, this.paddleWidth, this.paddleHeight);
-    this.canvasContext.fillStyle = "#0095DD";
+    this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fill();
     this.canvasContext.closePath();
   }
@@ -157,9 +157,15 @@ export class AppComponent implements AfterViewInit, DoCheck {
           let brickY = (c * (this.brickHeight + this.brickPadding)) + this.brickOffsetTop;
           this.bricks[c][r].x = brickX;
           this.bricks[c][r].y = brickY;
+          let gradientFill = this.canvasContext.createLinearGradient(brickX, brickY, brickX + this.brickWidth, brickY + this.brickHeight);
+          gradientFill.addColorStop(0, "#8c0e06");
+          gradientFill.addColorStop(1, "#e81305");
           this.canvasContext.beginPath();
           this.canvasContext.rect(brickX, brickY, this.brickWidth, this.brickHeight);
-          this.canvasContext.fillStyle = "#0095DD";
+          this.canvasContext.fillStyle = gradientFill;
+          this.canvasContext.strokeStyle = "#db7c00";
+          this.canvasContext.lineWidth = 5;
+          this.canvasContext.strokeRect(brickX, brickY, this.brickWidth, this.brickHeight);
           this.canvasContext.fill();
           this.canvasContext.closePath();
         }
@@ -169,18 +175,20 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   drawScore() {
     this.canvasContext.font = "16px Arial";
-    this.canvasContext.fillStyle = "#0095DD";
+    this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fillText("Score: " + this.score, 8, 20);
   }
 
   drawLives() {
     this.canvasContext.font = "16px Arial";
-    this.canvasContext.fillStyle = "#0095DD";
+    this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fillText("Lives: " + this.lives, this.canvas.width - 65, 20);
   }
 
   draw() {
     this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.canvasContext.fillStyle = "#dedede";
+    this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.drawBricks();
     this.drawBall();
     this.drawPaddle();
