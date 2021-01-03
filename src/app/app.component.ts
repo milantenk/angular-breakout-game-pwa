@@ -31,18 +31,41 @@ export class AppComponent implements AfterViewInit, DoCheck {
   ngAfterViewInit() {
     this.canvas = this.canvasElementRef.nativeElement;
     this.canvasContext = this.canvas.getContext('2d') as CanvasRenderingContext2D;
+    if (window.innerWidth > 700) {
+      this.canvas.width = window.innerWidth / 2;
+    } else {
+      this.canvas.width = window.innerWidth - 50;
+    }
+    if (window.innerHeight > 500) {
+      this.canvas.height = window.innerHeight / 2;
+    } else {
+      this.canvas.height = window.innerHeight - 50;
+    }
+    // this.canvas.width = 480;
+    // this.canvas.height = 320;
 
     this.layoutSettings = new LayoutSettings();
+    // this.layoutSettings.ballRadius = 10;
+    // this.layoutSettings.paddleHeight = 10;
+    // this.layoutSettings.paddleWidth = 75;
+    // this.layoutSettings.brickRowCount = 7;
+    // this.layoutSettings.brickColumnCount = 3;
+    // this.layoutSettings.brickWidth = 51;
+    // this.layoutSettings.brickHeight = 15;
+    // this.layoutSettings.brickPadding = 10;
+    // this.layoutSettings.brickOffsetTop = 35;
+    // this.layoutSettings.brickOffsetLeft = 30;
     this.layoutSettings.ballRadius = 10;
     this.layoutSettings.paddleHeight = 10;
-    this.layoutSettings.paddleWidth = 75;
-    this.layoutSettings.brickRowCount = 7;
-    this.layoutSettings.brickColumnCount = 3;
-    this.layoutSettings.brickWidth = 51;
-    this.layoutSettings.brickHeight = 15;
-    this.layoutSettings.brickPadding = 10;
+    this.layoutSettings.paddleWidth = this.canvas.width / 8;
+    this.layoutSettings.brickColumnCount = 7;
+    this.layoutSettings.brickRowCount = 3;
+    this.layoutSettings.brickWidth = this.canvas.width / 9;
+    this.layoutSettings.brickHeight = this.canvas.height / 25;
+    this.layoutSettings.brickPaddingRightLeft = this.canvas.width / 50;
+    this.layoutSettings.brickPaddingTopBottom = 10;
     this.layoutSettings.brickOffsetTop = 35;
-    this.layoutSettings.brickOffsetLeft = 30;
+    this.layoutSettings.brickOffsetLeft = this.canvas.width / 20;
 
     this.gameStates = new GameStates();
     this.gameStates.ballX = this.canvas.width / 2;
@@ -55,10 +78,10 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.gameStates.score = 0;
     this.gameStates.lives = 3;
     this.gameStates.bricks = [];
-    for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
-      this.gameStates.bricks[c] = [];
-      for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
-        this.gameStates.bricks[c][r] = { x: 0, y: 0, status: 1 } as Brick;
+    for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
+      this.gameStates.bricks[r] = [];
+      for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
+        this.gameStates.bricks[r][c] = { x: 0, y: 0, status: 1 } as Brick;
       }
     }
 
@@ -84,7 +107,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
   }
 
   @HostListener('window:keyup', ['$event'])
-  handleKeyUp(event: KeyboardEvent) {
+  handleKeyUp(event: KeyboardEvent): void {
     if (event.code == 'ArrowRight') {
       this.gameStates.rightPressed = false;
     }
@@ -94,24 +117,24 @@ export class AppComponent implements AfterViewInit, DoCheck {
   }
 
   @HostListener('window:mousemove', ['$event'])
-  handleMouseMove(event: MouseEvent) {
+  handleMouseMove(event: MouseEvent): void {
     let relativeX = event.clientX - this.canvas.offsetLeft;
     if (relativeX > 0 && relativeX < this.canvas.width) {
       this.gameStates.paddleX = relativeX - this.layoutSettings.paddleWidth / 2;
     }
   }
 
-  collisionDetection() {
-    for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
-      for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
-        let b = this.gameStates.bricks[c][r];
+  collisionDetection(): void {
+    for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
+      for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
+        let b = this.gameStates.bricks[r][c];
         if (b.status == 1) {
           if (this.gameStates.ballX > b.x && this.gameStates.ballX < b.x + this.layoutSettings.brickWidth && this.gameStates.ballY > b.y && this.gameStates.ballY < b.y + this.layoutSettings.brickHeight) {
             this.gameStates.ballDY = -this.gameStates.ballDY;
             b.status = 0;
             this.gameStates.score++;
-            if (this.gameStates.score == this.layoutSettings.brickRowCount * this.layoutSettings.brickColumnCount) {
-              alert("YOU WIN, CONGRATS!");
+            if (this.gameStates.score == this.layoutSettings.brickColumnCount * this.layoutSettings.brickRowCount) {
+              alert("You Win, Congrats!");
               document.location.reload();
             }
           }
@@ -120,7 +143,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
     }
   }
 
-  drawBall() {
+  drawBall(): void {
     this.canvasContext.beginPath();
     this.canvasContext.arc(this.gameStates.ballX, this.gameStates.ballY, this.layoutSettings.ballRadius, 0, Math.PI * 2);
     this.canvasContext.fillStyle = "#014f69";
@@ -128,7 +151,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.canvasContext.closePath();
   }
 
-  drawPaddle() {
+  drawPaddle(): void {
     this.canvasContext.beginPath();
     this.canvasContext.rect(this.gameStates.paddleX, this.canvas.height - this.layoutSettings.paddleHeight, this.layoutSettings.paddleWidth, this.layoutSettings.paddleHeight);
     this.canvasContext.fillStyle = "#014f69";
@@ -136,14 +159,14 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.canvasContext.closePath();
   }
 
-  drawBricks() {
-    for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
-      for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
-        if (this.gameStates.bricks[c][r].status == 1) {
-          let brickX = (r * (this.layoutSettings.brickWidth + this.layoutSettings.brickPadding)) + this.layoutSettings.brickOffsetLeft;
-          let brickY = (c * (this.layoutSettings.brickHeight + this.layoutSettings.brickPadding)) + this.layoutSettings.brickOffsetTop;
-          this.gameStates.bricks[c][r].x = brickX;
-          this.gameStates.bricks[c][r].y = brickY;
+  drawBricks(): void {
+    for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
+      for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
+        if (this.gameStates.bricks[r][c].status == 1) {
+          let brickX = (c * (this.layoutSettings.brickWidth + this.layoutSettings.brickPaddingRightLeft)) + this.layoutSettings.brickOffsetLeft;
+          let brickY = (r * (this.layoutSettings.brickHeight + this.layoutSettings.brickPaddingTopBottom)) + this.layoutSettings.brickOffsetTop;
+          this.gameStates.bricks[r][c].x = brickX;
+          this.gameStates.bricks[r][c].y = brickY;
           let gradientFill = this.canvasContext.createLinearGradient(brickX, brickY, brickX + this.layoutSettings.brickWidth, brickY + this.layoutSettings.brickHeight);
           gradientFill.addColorStop(0, "#8c0e06");
           gradientFill.addColorStop(1, "#e81305");
@@ -160,19 +183,19 @@ export class AppComponent implements AfterViewInit, DoCheck {
     }
   }
 
-  drawScore() {
+  drawScore(): void {
     this.canvasContext.font = "16px Arial";
     this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fillText("Score: " + this.gameStates.score, 8, 20);
   }
 
-  drawLives() {
+  drawLives(): void {
     this.canvasContext.font = "16px Arial";
     this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fillText("Lives: " + this.gameStates.lives, this.canvas.width - 65, 20);
   }
 
-  draw() {
+  draw(): void {
     this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.canvasContext.fillStyle = "#dedede";
     this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
