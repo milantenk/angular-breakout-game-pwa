@@ -53,7 +53,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   private initLayout(): void {
     this.layoutSettings = new LayoutSettings();
-    this.layoutSettings.ballRadius = 10;
+    this.layoutSettings.ballRadius = this.canvas.width / 80;
     this.layoutSettings.paddleHeight = 10;
     this.layoutSettings.paddleWidth = this.canvas.width / 8;
     this.layoutSettings.brickColumnCount = 7;
@@ -230,8 +230,8 @@ export class AppComponent implements AfterViewInit, DoCheck {
         else {
           this.gameStates.ballX = this.canvas.width / 2;
           this.gameStates.ballY = this.canvas.height - 30;
-          this.gameStates.ballDX = 3;
-          this.gameStates.ballDY = -3;
+          this.gameStates.ballDX = 2;
+          this.gameStates.ballDY = -2;
           this.gameStates.paddleX = (this.canvas.width - this.layoutSettings.paddleWidth) / 2;
         }
       }
