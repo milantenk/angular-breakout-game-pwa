@@ -8,7 +8,9 @@ import {
   ViewChild
 } from '@angular/core';
 
-import { Brick } from './core/brick';
+import { Brick } from './shared/brick';
+import { GameStates } from './shared/game-states';
+import { LayoutSettings } from './shared/layout-settings';
 
 @Component({
   selector: 'app-root',
@@ -20,27 +22,8 @@ export class AppComponent implements AfterViewInit, DoCheck {
   canvas: HTMLCanvasElement;
   canvasContext: CanvasRenderingContext2D;
 
-  ballRadius: number;
-  x: number;
-  y: number;
-  dx: number;
-  dy: number;
-  paddleHeight: number;
-  paddleWidth: number;
-  paddleX: number;
-  rightPressed: boolean;
-  leftPressed: boolean;
-  brickRowCount: number;
-  brickColumnCount: number;
-  brickWidth: number;
-  brickHeight: number;
-  brickPadding: number;
-  brickOffsetTop: number;
-  brickOffsetLeft: number;
-  score: number;
-  lives: number;
-
-  bricks: Brick[][] = [];
+  gameStates: GameStates;
+  layoutSettings: LayoutSettings;
 
   constructor(private ngZone: NgZone) {
   }
@@ -48,34 +31,38 @@ export class AppComponent implements AfterViewInit, DoCheck {
   ngAfterViewInit() {
     this.canvas = this.canvasElementRef.nativeElement;
     this.canvasContext = this.canvas.getContext('2d') as CanvasRenderingContext2D;
-    this.ballRadius = 10;
-    this.x = this.canvas.width / 2;
-    this.y = this.canvas.height - 30;
-    this.dx = 2;
-    this.dy = -2;
-    this.paddleHeight = 10;
-    this.paddleWidth = 75;
-    this.paddleX = (this.canvas.width - this.paddleWidth) / 2;
-    this.rightPressed = false;
-    this.leftPressed = false;
-    this.brickRowCount = 7;
-    this.brickColumnCount = 3;
-    this.brickWidth = 51;
-    this.brickHeight = 15;
-    this.brickPadding = 10;
-    this.brickOffsetTop = 30;
-    this.brickOffsetLeft = 30;
-    this.score = 0;
-    this.lives = 3;
 
-    // TODO: use array functions instead of nested for loops
-    for (let c = 0; c < this.brickColumnCount; c++) {
-      this.bricks[c] = [];
-      for (let r = 0; r < this.brickRowCount; r++) {
-        this.bricks[c][r] = { x: 0, y: 0, status: 1 } as Brick;
+    this.layoutSettings = new LayoutSettings();
+    this.layoutSettings.ballRadius = 10;
+    this.layoutSettings.paddleHeight = 10;
+    this.layoutSettings.paddleWidth = 75;
+    this.layoutSettings.brickRowCount = 7;
+    this.layoutSettings.brickColumnCount = 3;
+    this.layoutSettings.brickWidth = 51;
+    this.layoutSettings.brickHeight = 15;
+    this.layoutSettings.brickPadding = 10;
+    this.layoutSettings.brickOffsetTop = 30;
+    this.layoutSettings.brickOffsetLeft = 30;
+    this.layoutSettings.bricks = [];
+    for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
+      this.layoutSettings.bricks[c] = [];
+      for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
+        this.layoutSettings.bricks[c][r] = { x: 0, y: 0, status: 1 } as Brick;
       }
     }
 
+    this.gameStates = new GameStates();
+    this.gameStates.ballX = this.canvas.width / 2;
+    this.gameStates.ballY = this.canvas.height - 30;
+    this.gameStates.ballDX = 2;
+    this.gameStates.ballDY = -2;
+    this.gameStates.paddleX = (this.canvas.width - this.layoutSettings.paddleWidth) / 2;
+    this.gameStates.rightPressed = false;
+    this.gameStates.leftPressed = false;
+    this.gameStates.score = 0;
+    this.gameStates.lives = 3;
+
+    // Disable change detection when we draw on the canvas
     this.ngZone.runOutsideAngular(() => this.draw());
   }
 
@@ -83,26 +70,26 @@ export class AppComponent implements AfterViewInit, DoCheck {
   counter = 0;
   ngDoCheck() {
     this.counter++;
-    console.log(this.counter);
+    // console.log(this.counter);
   }
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     if (event.keyCode == 39) {
-      this.rightPressed = true;
+      this.gameStates.rightPressed = true;
     }
     else if (event.keyCode == 37) {
-      this.leftPressed = true;
+      this.gameStates.leftPressed = true;
     }
   }
 
   @HostListener('window:keyup', ['$event'])
   handleKeyUp(event: KeyboardEvent) {
     if (event.keyCode == 39) {
-      this.rightPressed = false;
+      this.gameStates.rightPressed = false;
     }
     else if (event.keyCode == 37) {
-      this.leftPressed = false;
+      this.gameStates.leftPressed = false;
     }
   }
 
@@ -110,32 +97,48 @@ export class AppComponent implements AfterViewInit, DoCheck {
   handleMouseMove(event: MouseEvent) {
     let relativeX = event.clientX - this.canvas.offsetLeft;
     if (relativeX > 0 && relativeX < this.canvas.width) {
-      this.paddleX = relativeX - this.paddleWidth / 2;
+      this.gameStates.paddleX = relativeX - this.layoutSettings.paddleWidth / 2;
     }
   }
 
   collisionDetection() {
-    for (let c = 0; c < this.brickColumnCount; c++) {
-      for (let r = 0; r < this.brickRowCount; r++) {
-        let b = this.bricks[c][r];
+    for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
+      for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
+        let b = this.layoutSettings.bricks[c][r];
         if (b.status == 1) {
-          if (this.x > b.x && this.x < b.x + this.brickWidth && this.y > b.y && this.y < b.y + this.brickHeight) {
-            this.dy = -this.dy;
+          if (this.gameStates.ballX > b.x && this.gameStates.ballX < b.x + this.layoutSettings.brickWidth && this.gameStates.ballY > b.y && this.gameStates.ballY < b.y + this.layoutSettings.brickHeight) {
+            this.gameStates.ballDY = -this.gameStates.ballDY;
             b.status = 0;
-            this.score++;
-            if (this.score == this.brickRowCount * this.brickColumnCount) {
-              alert("YOU WIN, CONGRATS!");
-              document.location.reload();
+            this.gameStates.score++;
+            if (this.gameStates.score == this.layoutSettings.brickRowCount * this.layoutSettings.brickColumnCount) {
+              // alert("YOU WIN, CONGRATS!");
+              // document.location.reload();
             }
           }
         }
       }
     }
+
+
+    // this.layoutSettings.bricks.forEach(column => column.forEach(brick => {
+    //   if (brick.status == 1) {
+    //     if (this.gameStates.ballX > brick.x && this.gameStates.ballX < brick.x + this.layoutSettings.brickWidth && this.gameStates.ballY > brick.y && this.gameStates.ballY < brick.y + this.layoutSettings.brickHeight) {
+    //       this.gameStates.ballDY = -this.gameStates.ballDY;
+    //       brick.status = 0;
+    //       this.gameStates.score++;
+    //       if (this.gameStates.score == this.layoutSettings.brickRowCount * this.layoutSettings.brickColumnCount) {
+    //         // alert("YOU WIN, CONGRATS!");
+    //         // document.location.reload();
+    //       }
+    //     }
+    // }}))
+
+
   }
 
   drawBall() {
     this.canvasContext.beginPath();
-    this.canvasContext.arc(this.x, this.y, this.ballRadius, 0, Math.PI * 2);
+    this.canvasContext.arc(this.gameStates.ballX, this.gameStates.ballY, this.layoutSettings.ballRadius, 0, Math.PI * 2);
     this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fill();
     this.canvasContext.closePath();
@@ -143,29 +146,29 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   drawPaddle() {
     this.canvasContext.beginPath();
-    this.canvasContext.rect(this.paddleX, this.canvas.height - this.paddleHeight, this.paddleWidth, this.paddleHeight);
+    this.canvasContext.rect(this.gameStates.paddleX, this.canvas.height - this.layoutSettings.paddleHeight, this.layoutSettings.paddleWidth, this.layoutSettings.paddleHeight);
     this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fill();
     this.canvasContext.closePath();
   }
 
   drawBricks() {
-    for (let c = 0; c < this.brickColumnCount; c++) {
-      for (let r = 0; r < this.brickRowCount; r++) {
-        if (this.bricks[c][r].status == 1) {
-          let brickX = (r * (this.brickWidth + this.brickPadding)) + this.brickOffsetLeft;
-          let brickY = (c * (this.brickHeight + this.brickPadding)) + this.brickOffsetTop;
-          this.bricks[c][r].x = brickX;
-          this.bricks[c][r].y = brickY;
-          let gradientFill = this.canvasContext.createLinearGradient(brickX, brickY, brickX + this.brickWidth, brickY + this.brickHeight);
+    for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
+      for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
+        if (this.layoutSettings.bricks[c][r].status == 1) {
+          let brickX = (r * (this.layoutSettings.brickWidth + this.layoutSettings.brickPadding)) + this.layoutSettings.brickOffsetLeft;
+          let brickY = (c * (this.layoutSettings.brickHeight + this.layoutSettings.brickPadding)) + this.layoutSettings.brickOffsetTop;
+          this.layoutSettings.bricks[c][r].x = brickX;
+          this.layoutSettings.bricks[c][r].y = brickY;
+          let gradientFill = this.canvasContext.createLinearGradient(brickX, brickY, brickX + this.layoutSettings.brickWidth, brickY + this.layoutSettings.brickHeight);
           gradientFill.addColorStop(0, "#8c0e06");
           gradientFill.addColorStop(1, "#e81305");
           this.canvasContext.beginPath();
-          this.canvasContext.rect(brickX, brickY, this.brickWidth, this.brickHeight);
+          this.canvasContext.rect(brickX, brickY, this.layoutSettings.brickWidth, this.layoutSettings.brickHeight);
           this.canvasContext.fillStyle = gradientFill;
           this.canvasContext.strokeStyle = "#db7c00";
           this.canvasContext.lineWidth = 5;
-          this.canvasContext.strokeRect(brickX, brickY, this.brickWidth, this.brickHeight);
+          this.canvasContext.strokeRect(brickX, brickY, this.layoutSettings.brickWidth, this.layoutSettings.brickHeight);
           this.canvasContext.fill();
           this.canvasContext.closePath();
         }
@@ -176,13 +179,13 @@ export class AppComponent implements AfterViewInit, DoCheck {
   drawScore() {
     this.canvasContext.font = "16px Arial";
     this.canvasContext.fillStyle = "#014f69";
-    this.canvasContext.fillText("Score: " + this.score, 8, 20);
+    this.canvasContext.fillText("Score: " + this.gameStates.score, 8, 20);
   }
 
   drawLives() {
     this.canvasContext.font = "16px Arial";
     this.canvasContext.fillStyle = "#014f69";
-    this.canvasContext.fillText("Lives: " + this.lives, this.canvas.width - 65, 20);
+    this.canvasContext.fillText("Lives: " + this.gameStates.lives, this.canvas.width - 65, 20);
   }
 
   draw() {
@@ -196,41 +199,41 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.drawLives();
     this.collisionDetection();
 
-    if (this.x + this.dx > this.canvas.width - this.ballRadius || this.x + this.dx < this.ballRadius) {
-      this.dx = -this.dx;
+    if (this.gameStates.ballX + this.gameStates.ballDX > this.canvas.width - this.layoutSettings.ballRadius || this.gameStates.ballX + this.gameStates.ballDX < this.layoutSettings.ballRadius) {
+      this.gameStates.ballDX = -this.gameStates.ballDX;
     }
-    if (this.y + this.dy < this.ballRadius) {
-      this.dy = -this.dy;
+    if (this.gameStates.ballY + this.gameStates.ballDY < this.layoutSettings.ballRadius) {
+      this.gameStates.ballDY = -this.gameStates.ballDY;
     }
-    else if (this.y + this.dy > this.canvas.height - this.ballRadius) {
-      if (this.x > this.paddleX && this.x < this.paddleX + this.paddleWidth) {
-        this.dy = -this.dy;
+    else if (this.gameStates.ballY + this.gameStates.ballDY > this.canvas.height - this.layoutSettings.ballRadius) {
+      if (this.gameStates.ballX > this.gameStates.paddleX && this.gameStates.ballX < this.gameStates.paddleX + this.layoutSettings.paddleWidth) {
+        this.gameStates.ballDY = -this.gameStates.ballDY;
       }
       else {
-        this.lives--;
-        if (!this.lives) {
-          alert("GAME OVER");
-          document.location.reload();
+        this.gameStates.lives--;
+        if (!this.gameStates.lives) {
+          // alert("GAME OVER");
+          // document.location.reload();
         }
         else {
-          this.x = this.canvas.width / 2;
-          this.y = this.canvas.height - 30;
-          this.dx = 3;
-          this.dy = -3;
-          this.paddleX = (this.canvas.width - this.paddleWidth) / 2;
+          this.gameStates.ballX = this.canvas.width / 2;
+          this.gameStates.ballY = this.canvas.height - 30;
+          this.gameStates.ballDX = 3;
+          this.gameStates.ballDY = -3;
+          this.gameStates.paddleX = (this.canvas.width - this.layoutSettings.paddleWidth) / 2;
         }
       }
     }
 
-    if (this.rightPressed && this.paddleX < this.canvas.width - this.paddleWidth) {
-      this.paddleX += 7;
+    if (this.gameStates.rightPressed && this.gameStates.paddleX < this.canvas.width - this.layoutSettings.paddleWidth) {
+      this.gameStates.paddleX += 7;
     }
-    else if (this.leftPressed && this.paddleX > 0) {
-      this.paddleX -= 7;
+    else if (this.gameStates.leftPressed && this.gameStates.paddleX > 0) {
+      this.gameStates.paddleX -= 7;
     }
 
-    this.x += this.dx;
-    this.y += this.dy;
+    this.gameStates.ballX += this.gameStates.ballDX;
+    this.gameStates.ballY += this.gameStates.ballDY;
     window.requestAnimationFrame(this.draw.bind(this));
   }
 
