@@ -146,87 +146,8 @@ export class AppComponent implements AfterViewInit, DoCheck {
     }
   }
 
-  private collisionDetection(): void {
-    for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
-      for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
-        const b = this.gameStates.bricks[r][c];
-        if (b.status === 1) {
-          if (this.gameStates.ballX > b.x && this.gameStates.ballX < b.x + this.layoutSettings.brickWidth &&
-            this.gameStates.ballY > b.y && this.gameStates.ballY < b.y + this.layoutSettings.brickHeight) {
-
-            this.gameStates.ballDY = -this.gameStates.ballDY;
-            b.status = 0;
-            this.gameStates.score++;
-            if (this.gameStates.score === this.layoutSettings.brickColumnCount * this.layoutSettings.brickRowCount) {
-              alert('You Win, Congrats!');
-              document.location.reload();
-            }
-
-          }
-        }
-      }
-    }
-  }
-
-  private drawBall(): void {
-    this.canvasContext.beginPath();
-    this.canvasContext.arc(this.gameStates.ballX, this.gameStates.ballY, this.layoutSettings.ballRadius, 0, Math.PI * 2);
-    this.canvasContext.fillStyle = this.canvasItemStyles.ballColor;
-    this.canvasContext.fill();
-    this.canvasContext.closePath();
-  }
-
-  private drawPaddle(): void {
-    this.canvasContext.beginPath();
-    this.canvasContext.rect(this.gameStates.paddleX,
-      this.canvas.height - this.layoutSettings.paddleHeight,
-      this.layoutSettings.paddleWidth,
-      this.layoutSettings.paddleHeight);
-    this.canvasContext.fillStyle = this.canvasItemStyles.paddleColor;
-    this.canvasContext.fill();
-    this.canvasContext.closePath();
-  }
-
-  private drawBricks(): void {
-    for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
-      for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
-        if (this.gameStates.bricks[r][c].status === 1) {
-          const brickX = (c * (this.layoutSettings.brickWidth + this.layoutSettings.brickPaddingRightLeft)) +
-            this.layoutSettings.brickOffsetLeft;
-          const brickY = (r * (this.layoutSettings.brickHeight + this.layoutSettings.brickPaddingTopBottom)) +
-            this.layoutSettings.brickOffsetTop;
-          this.gameStates.bricks[r][c].x = brickX;
-          this.gameStates.bricks[r][c].y = brickY;
-          const gradientFill = this.canvasContext.createLinearGradient(brickX, brickY,
-            brickX + this.layoutSettings.brickWidth,
-            brickY + this.layoutSettings.brickHeight);
-          gradientFill.addColorStop(0, this.canvasItemStyles.brickGradientStart);
-          gradientFill.addColorStop(1, this.canvasItemStyles.brickGradientEnd);
-          this.canvasContext.beginPath();
-          this.canvasContext.rect(brickX, brickY, this.layoutSettings.brickWidth, this.layoutSettings.brickHeight);
-          this.canvasContext.fillStyle = gradientFill;
-          this.canvasContext.strokeStyle = this.canvasItemStyles.brickBorder;
-          this.canvasContext.lineWidth = 5;
-          this.canvasContext.strokeRect(brickX, brickY, this.layoutSettings.brickWidth, this.layoutSettings.brickHeight);
-          this.canvasContext.fill();
-          this.canvasContext.closePath();
-        }
-      }
-    }
-  }
-
-  private drawScore(): void {
-    this.canvasContext.font = this.canvasItemStyles.scoreFont;
-    this.canvasContext.fillStyle = this.canvasItemStyles.scoreColor;
-    this.canvasContext.fillText('Score: ' + this.gameStates.score, 8, 20);
-  }
-
-  private drawLives(): void {
-    this.canvasContext.font = this.canvasItemStyles.livesFont;
-    this.canvasContext.fillStyle = this.canvasItemStyles.livesColor;
-    this.canvasContext.fillText('Lives: ' + this.gameStates.lives, this.canvas.width - 65, 20);
-  }
-
+  // This is the function that is called by window.requestAnimationFrame()
+  // this way this function is called every time in a loop till the game ends
   private draw(): void {
     this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.canvasContext.fillStyle = this.canvasItemStyles.canvasBackgroundColor;
@@ -236,7 +157,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.drawPaddle();
     this.drawScore();
     this.drawLives();
-    this.collisionDetection();
+    this.detectCollision();
 
     if (this.gameStates.ballX + this.gameStates.ballDX > this.canvas.width - this.layoutSettings.ballRadius ||
       this.gameStates.ballX + this.gameStates.ballDX < this.layoutSettings.ballRadius) {
@@ -276,6 +197,87 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.gameStates.ballX += this.gameStates.ballDX;
     this.gameStates.ballY += this.gameStates.ballDY;
     window.requestAnimationFrame(this.draw.bind(this));
+  }
+
+  private drawBricks(): void {
+    for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
+      for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
+        if (this.gameStates.bricks[r][c].status === 1) {
+          const brickX = (c * (this.layoutSettings.brickWidth + this.layoutSettings.brickPaddingRightLeft)) +
+            this.layoutSettings.brickOffsetLeft;
+          const brickY = (r * (this.layoutSettings.brickHeight + this.layoutSettings.brickPaddingTopBottom)) +
+            this.layoutSettings.brickOffsetTop;
+          this.gameStates.bricks[r][c].x = brickX;
+          this.gameStates.bricks[r][c].y = brickY;
+          const gradientFill = this.canvasContext.createLinearGradient(brickX, brickY,
+            brickX + this.layoutSettings.brickWidth,
+            brickY + this.layoutSettings.brickHeight);
+          gradientFill.addColorStop(0, this.canvasItemStyles.brickGradientStart);
+          gradientFill.addColorStop(1, this.canvasItemStyles.brickGradientEnd);
+          this.canvasContext.beginPath();
+          this.canvasContext.rect(brickX, brickY, this.layoutSettings.brickWidth, this.layoutSettings.brickHeight);
+          this.canvasContext.fillStyle = gradientFill;
+          this.canvasContext.strokeStyle = this.canvasItemStyles.brickBorder;
+          this.canvasContext.lineWidth = 5;
+          this.canvasContext.strokeRect(brickX, brickY, this.layoutSettings.brickWidth, this.layoutSettings.brickHeight);
+          this.canvasContext.fill();
+          this.canvasContext.closePath();
+        }
+      }
+    }
+  }
+
+  private drawBall(): void {
+    this.canvasContext.beginPath();
+    this.canvasContext.arc(this.gameStates.ballX, this.gameStates.ballY, this.layoutSettings.ballRadius, 0, Math.PI * 2);
+    this.canvasContext.fillStyle = this.canvasItemStyles.ballColor;
+    this.canvasContext.fill();
+    this.canvasContext.closePath();
+  }
+
+  private drawPaddle(): void {
+    this.canvasContext.beginPath();
+    this.canvasContext.rect(this.gameStates.paddleX,
+      this.canvas.height - this.layoutSettings.paddleHeight,
+      this.layoutSettings.paddleWidth,
+      this.layoutSettings.paddleHeight);
+    this.canvasContext.fillStyle = this.canvasItemStyles.paddleColor;
+    this.canvasContext.fill();
+    this.canvasContext.closePath();
+  }
+
+  private drawScore(): void {
+    this.canvasContext.font = this.canvasItemStyles.scoreFont;
+    this.canvasContext.fillStyle = this.canvasItemStyles.scoreColor;
+    this.canvasContext.fillText('Score: ' + this.gameStates.score, 8, 20);
+  }
+
+  private drawLives(): void {
+    this.canvasContext.font = this.canvasItemStyles.livesFont;
+    this.canvasContext.fillStyle = this.canvasItemStyles.livesColor;
+    this.canvasContext.fillText('Lives: ' + this.gameStates.lives, this.canvas.width - 65, 20);
+  }
+
+  private detectCollision(): void {
+    for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
+      for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
+        const b = this.gameStates.bricks[r][c];
+        if (b.status === 1) {
+          if (this.gameStates.ballX > b.x && this.gameStates.ballX < b.x + this.layoutSettings.brickWidth &&
+            this.gameStates.ballY > b.y && this.gameStates.ballY < b.y + this.layoutSettings.brickHeight) {
+
+            this.gameStates.ballDY = -this.gameStates.ballDY;
+            b.status = 0;
+            this.gameStates.score++;
+            if (this.gameStates.score === this.layoutSettings.brickColumnCount * this.layoutSettings.brickRowCount) {
+              alert('You Win, Congrats!');
+              document.location.reload();
+            }
+
+          }
+        }
+      }
+    }
   }
 
 }
