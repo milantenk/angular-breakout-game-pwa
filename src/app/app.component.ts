@@ -19,6 +19,9 @@ import { LayoutSettings } from './shared/layout-settings';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements AfterViewInit, DoCheck {
+
+  constructor(private ngZone: NgZone) {
+  }
   @ViewChild('canvas', { static: false }) canvasElementRef: ElementRef<HTMLCanvasElement>;
   canvas: HTMLCanvasElement;
 
@@ -27,8 +30,8 @@ export class AppComponent implements AfterViewInit, DoCheck {
   gameStates: GameStates;
   layoutSettings: LayoutSettings;
 
-  constructor(private ngZone: NgZone) {
-  }
+
+  counter = 0;
 
   ngAfterViewInit(): void {
     this.initCanvas();
@@ -102,9 +105,6 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.canvasItemStyles.livesColor = '#014f69';
     this.canvasItemStyles.canvasBackgroundColor = '#dedede';
   }
-
-
-  counter = 0;
   ngDoCheck(): void {
     this.counter++;
     // console.log(this.counter);
@@ -112,10 +112,10 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent): void {
-    if (event.code == 'ArrowRight') {
+    if (event.code === 'ArrowRight') {
       this.gameStates.rightPressed = true;
     }
-    else if (event.code == 'ArrowLeft') {
+    else if (event.code === 'ArrowLeft') {
       this.gameStates.leftPressed = true;
     }
   }
@@ -178,7 +178,10 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   private drawPaddle(): void {
     this.canvasContext.beginPath();
-    this.canvasContext.rect(this.gameStates.paddleX, this.canvas.height - this.layoutSettings.paddleHeight, this.layoutSettings.paddleWidth, this.layoutSettings.paddleHeight);
+    this.canvasContext.rect(this.gameStates.paddleX,
+      this.canvas.height - this.layoutSettings.paddleHeight,
+      this.layoutSettings.paddleWidth,
+      this.layoutSettings.paddleHeight);
     this.canvasContext.fillStyle = this.canvasItemStyles.paddleColor;
     this.canvasContext.fill();
     this.canvasContext.closePath();
@@ -187,12 +190,16 @@ export class AppComponent implements AfterViewInit, DoCheck {
   private drawBricks(): void {
     for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
       for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
-        if (this.gameStates.bricks[r][c].status == 1) {
-          let brickX = (c * (this.layoutSettings.brickWidth + this.layoutSettings.brickPaddingRightLeft)) + this.layoutSettings.brickOffsetLeft;
-          let brickY = (r * (this.layoutSettings.brickHeight + this.layoutSettings.brickPaddingTopBottom)) + this.layoutSettings.brickOffsetTop;
+        if (this.gameStates.bricks[r][c].status === 1) {
+          const brickX = (c * (this.layoutSettings.brickWidth + this.layoutSettings.brickPaddingRightLeft)) +
+            this.layoutSettings.brickOffsetLeft;
+          const brickY = (r * (this.layoutSettings.brickHeight + this.layoutSettings.brickPaddingTopBottom)) +
+            this.layoutSettings.brickOffsetTop;
           this.gameStates.bricks[r][c].x = brickX;
           this.gameStates.bricks[r][c].y = brickY;
-          let gradientFill = this.canvasContext.createLinearGradient(brickX, brickY, brickX + this.layoutSettings.brickWidth, brickY + this.layoutSettings.brickHeight);
+          const gradientFill = this.canvasContext.createLinearGradient(brickX, brickY,
+            brickX + this.layoutSettings.brickWidth,
+            brickY + this.layoutSettings.brickHeight);
           gradientFill.addColorStop(0, this.canvasItemStyles.brickGradientStart);
           gradientFill.addColorStop(1, this.canvasItemStyles.brickGradientEnd);
           this.canvasContext.beginPath();
@@ -231,20 +238,22 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.drawLives();
     this.collisionDetection();
 
-    if (this.gameStates.ballX + this.gameStates.ballDX > this.canvas.width - this.layoutSettings.ballRadius || this.gameStates.ballX + this.gameStates.ballDX < this.layoutSettings.ballRadius) {
+    if (this.gameStates.ballX + this.gameStates.ballDX > this.canvas.width - this.layoutSettings.ballRadius ||
+      this.gameStates.ballX + this.gameStates.ballDX < this.layoutSettings.ballRadius) {
       this.gameStates.ballDX = -this.gameStates.ballDX;
     }
     if (this.gameStates.ballY + this.gameStates.ballDY < this.layoutSettings.ballRadius) {
       this.gameStates.ballDY = -this.gameStates.ballDY;
     }
     else if (this.gameStates.ballY + this.gameStates.ballDY > this.canvas.height - this.layoutSettings.ballRadius) {
-      if (this.gameStates.ballX > this.gameStates.paddleX && this.gameStates.ballX < this.gameStates.paddleX + this.layoutSettings.paddleWidth) {
+      if (this.gameStates.ballX > this.gameStates.paddleX &&
+        this.gameStates.ballX < this.gameStates.paddleX + this.layoutSettings.paddleWidth) {
         this.gameStates.ballDY = -this.gameStates.ballDY;
       }
       else {
         this.gameStates.lives--;
         if (!this.gameStates.lives) {
-          alert("Game Over");
+          alert('Game Over');
           document.location.reload();
         }
         else {

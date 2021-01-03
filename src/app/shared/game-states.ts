@@ -1,4 +1,4 @@
-import { Brick } from "./brick";
+import { Brick } from './brick';
 
 export class GameStates {
     score: number;
