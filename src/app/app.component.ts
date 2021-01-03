@@ -29,6 +29,14 @@ export class AppComponent implements AfterViewInit, DoCheck {
   }
 
   ngAfterViewInit() {
+    this.initCanvas();
+    this.initLayout();
+    this.initGameStates();
+    // Disable change detection when we draw on the canvas
+    this.ngZone.runOutsideAngular(() => this.draw());
+  }
+
+  private initCanvas(): void {
     this.canvas = this.canvasElementRef.nativeElement;
     this.canvasContext = this.canvas.getContext('2d') as CanvasRenderingContext2D;
     if (window.innerWidth > 700) {
@@ -41,20 +49,10 @@ export class AppComponent implements AfterViewInit, DoCheck {
     } else {
       this.canvas.height = window.innerHeight - 50;
     }
-    // this.canvas.width = 480;
-    // this.canvas.height = 320;
+  }
 
+  private initLayout(): void {
     this.layoutSettings = new LayoutSettings();
-    // this.layoutSettings.ballRadius = 10;
-    // this.layoutSettings.paddleHeight = 10;
-    // this.layoutSettings.paddleWidth = 75;
-    // this.layoutSettings.brickRowCount = 7;
-    // this.layoutSettings.brickColumnCount = 3;
-    // this.layoutSettings.brickWidth = 51;
-    // this.layoutSettings.brickHeight = 15;
-    // this.layoutSettings.brickPadding = 10;
-    // this.layoutSettings.brickOffsetTop = 35;
-    // this.layoutSettings.brickOffsetLeft = 30;
     this.layoutSettings.ballRadius = 10;
     this.layoutSettings.paddleHeight = 10;
     this.layoutSettings.paddleWidth = this.canvas.width / 8;
@@ -66,7 +64,9 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.layoutSettings.brickPaddingTopBottom = 10;
     this.layoutSettings.brickOffsetTop = 35;
     this.layoutSettings.brickOffsetLeft = this.canvas.width / 20;
+  }
 
+  private initGameStates(): void {
     this.gameStates = new GameStates();
     this.gameStates.ballX = this.canvas.width / 2;
     this.gameStates.ballY = this.canvas.height - 30;
@@ -84,9 +84,6 @@ export class AppComponent implements AfterViewInit, DoCheck {
         this.gameStates.bricks[r][c] = { x: 0, y: 0, status: 1 } as Brick;
       }
     }
-
-    // Disable change detection when we draw on the canvas
-    this.ngZone.runOutsideAngular(() => this.draw());
   }
 
 
@@ -124,7 +121,15 @@ export class AppComponent implements AfterViewInit, DoCheck {
     }
   }
 
-  collisionDetection(): void {
+  @HostListener('window:touchmove', ['$event'])
+  handleTouchMove(event: TouchEvent): void {
+    let relativeX = event.touches[0].clientX - this.canvas.offsetLeft;
+    if (relativeX > 0 && relativeX < this.canvas.width) {
+      this.gameStates.paddleX = relativeX - this.layoutSettings.paddleWidth / 2;
+    }
+  }
+
+  private collisionDetection(): void {
     for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
       for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
         let b = this.gameStates.bricks[r][c];
@@ -143,7 +148,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
     }
   }
 
-  drawBall(): void {
+  private drawBall(): void {
     this.canvasContext.beginPath();
     this.canvasContext.arc(this.gameStates.ballX, this.gameStates.ballY, this.layoutSettings.ballRadius, 0, Math.PI * 2);
     this.canvasContext.fillStyle = "#014f69";
@@ -151,7 +156,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.canvasContext.closePath();
   }
 
-  drawPaddle(): void {
+  private drawPaddle(): void {
     this.canvasContext.beginPath();
     this.canvasContext.rect(this.gameStates.paddleX, this.canvas.height - this.layoutSettings.paddleHeight, this.layoutSettings.paddleWidth, this.layoutSettings.paddleHeight);
     this.canvasContext.fillStyle = "#014f69";
@@ -159,7 +164,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.canvasContext.closePath();
   }
 
-  drawBricks(): void {
+  private drawBricks(): void {
     for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
       for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
         if (this.gameStates.bricks[r][c].status == 1) {
@@ -183,19 +188,19 @@ export class AppComponent implements AfterViewInit, DoCheck {
     }
   }
 
-  drawScore(): void {
+  private drawScore(): void {
     this.canvasContext.font = "16px Arial";
     this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fillText("Score: " + this.gameStates.score, 8, 20);
   }
 
-  drawLives(): void {
+  private drawLives(): void {
     this.canvasContext.font = "16px Arial";
     this.canvasContext.fillStyle = "#014f69";
     this.canvasContext.fillText("Lives: " + this.gameStates.lives, this.canvas.width - 65, 20);
   }
 
-  draw(): void {
+  private draw(): void {
     this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.canvasContext.fillStyle = "#dedede";
     this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
@@ -219,7 +224,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
       else {
         this.gameStates.lives--;
         if (!this.gameStates.lives) {
-          alert("GAME OVER");
+          alert("Game Over");
           document.location.reload();
         }
         else {
