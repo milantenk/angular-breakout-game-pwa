@@ -41,15 +41,8 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.layoutSettings.brickWidth = 51;
     this.layoutSettings.brickHeight = 15;
     this.layoutSettings.brickPadding = 10;
-    this.layoutSettings.brickOffsetTop = 30;
+    this.layoutSettings.brickOffsetTop = 35;
     this.layoutSettings.brickOffsetLeft = 30;
-    this.layoutSettings.bricks = [];
-    for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
-      this.layoutSettings.bricks[c] = [];
-      for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
-        this.layoutSettings.bricks[c][r] = { x: 0, y: 0, status: 1 } as Brick;
-      }
-    }
 
     this.gameStates = new GameStates();
     this.gameStates.ballX = this.canvas.width / 2;
@@ -61,6 +54,13 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.gameStates.leftPressed = false;
     this.gameStates.score = 0;
     this.gameStates.lives = 3;
+    this.gameStates.bricks = [];
+    for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
+      this.gameStates.bricks[c] = [];
+      for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
+        this.gameStates.bricks[c][r] = { x: 0, y: 0, status: 1 } as Brick;
+      }
+    }
 
     // Disable change detection when we draw on the canvas
     this.ngZone.runOutsideAngular(() => this.draw());
@@ -75,20 +75,20 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
-    if (event.keyCode == 39) {
+    if (event.code == 'ArrowRight') {
       this.gameStates.rightPressed = true;
     }
-    else if (event.keyCode == 37) {
+    else if (event.code == 'ArrowLeft') {
       this.gameStates.leftPressed = true;
     }
   }
 
   @HostListener('window:keyup', ['$event'])
   handleKeyUp(event: KeyboardEvent) {
-    if (event.keyCode == 39) {
+    if (event.code == 'ArrowRight') {
       this.gameStates.rightPressed = false;
     }
-    else if (event.keyCode == 37) {
+    else if (event.code == 'ArrowLeft') {
       this.gameStates.leftPressed = false;
     }
   }
@@ -104,36 +104,20 @@ export class AppComponent implements AfterViewInit, DoCheck {
   collisionDetection() {
     for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
       for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
-        let b = this.layoutSettings.bricks[c][r];
+        let b = this.gameStates.bricks[c][r];
         if (b.status == 1) {
           if (this.gameStates.ballX > b.x && this.gameStates.ballX < b.x + this.layoutSettings.brickWidth && this.gameStates.ballY > b.y && this.gameStates.ballY < b.y + this.layoutSettings.brickHeight) {
             this.gameStates.ballDY = -this.gameStates.ballDY;
             b.status = 0;
             this.gameStates.score++;
             if (this.gameStates.score == this.layoutSettings.brickRowCount * this.layoutSettings.brickColumnCount) {
-              // alert("YOU WIN, CONGRATS!");
-              // document.location.reload();
+              alert("YOU WIN, CONGRATS!");
+              document.location.reload();
             }
           }
         }
       }
     }
-
-
-    // this.layoutSettings.bricks.forEach(column => column.forEach(brick => {
-    //   if (brick.status == 1) {
-    //     if (this.gameStates.ballX > brick.x && this.gameStates.ballX < brick.x + this.layoutSettings.brickWidth && this.gameStates.ballY > brick.y && this.gameStates.ballY < brick.y + this.layoutSettings.brickHeight) {
-    //       this.gameStates.ballDY = -this.gameStates.ballDY;
-    //       brick.status = 0;
-    //       this.gameStates.score++;
-    //       if (this.gameStates.score == this.layoutSettings.brickRowCount * this.layoutSettings.brickColumnCount) {
-    //         // alert("YOU WIN, CONGRATS!");
-    //         // document.location.reload();
-    //       }
-    //     }
-    // }}))
-
-
   }
 
   drawBall() {
@@ -155,11 +139,11 @@ export class AppComponent implements AfterViewInit, DoCheck {
   drawBricks() {
     for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
       for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
-        if (this.layoutSettings.bricks[c][r].status == 1) {
+        if (this.gameStates.bricks[c][r].status == 1) {
           let brickX = (r * (this.layoutSettings.brickWidth + this.layoutSettings.brickPadding)) + this.layoutSettings.brickOffsetLeft;
           let brickY = (c * (this.layoutSettings.brickHeight + this.layoutSettings.brickPadding)) + this.layoutSettings.brickOffsetTop;
-          this.layoutSettings.bricks[c][r].x = brickX;
-          this.layoutSettings.bricks[c][r].y = brickY;
+          this.gameStates.bricks[c][r].x = brickX;
+          this.gameStates.bricks[c][r].y = brickY;
           let gradientFill = this.canvasContext.createLinearGradient(brickX, brickY, brickX + this.layoutSettings.brickWidth, brickY + this.layoutSettings.brickHeight);
           gradientFill.addColorStop(0, "#8c0e06");
           gradientFill.addColorStop(1, "#e81305");
@@ -212,8 +196,8 @@ export class AppComponent implements AfterViewInit, DoCheck {
       else {
         this.gameStates.lives--;
         if (!this.gameStates.lives) {
-          // alert("GAME OVER");
-          // document.location.reload();
+          alert("GAME OVER");
+          document.location.reload();
         }
         else {
           this.gameStates.ballX = this.canvas.width / 2;

@@ -1,5 +1,3 @@
-import { Brick } from "./brick";
-
 export class LayoutSettings {
     ballRadius: number;
     paddleHeight: number;
@@ -11,5 +9,4 @@ export class LayoutSettings {
     brickPadding: number;
     brickOffsetTop: number;
     brickOffsetLeft: number;
-    bricks: Brick[][];
 }

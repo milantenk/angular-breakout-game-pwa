@@ -1,3 +1,5 @@
+import { Brick } from "./brick";
+
 export class GameStates {
     score: number;
     lives: number;
@@ -8,4 +10,5 @@ export class GameStates {
     paddleX: number;
     rightPressed: boolean;
     leftPressed: boolean;
+    bricks: Brick[][];
 }
