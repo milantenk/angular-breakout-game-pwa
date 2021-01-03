@@ -10,6 +10,7 @@ import {
 
 import { Brick } from './shared/brick';
 import { GameStates } from './shared/game-states';
+import { ItemStyles } from './shared/item-colors';
 import { LayoutSettings } from './shared/layout-settings';
 
 @Component({
@@ -20,16 +21,18 @@ import { LayoutSettings } from './shared/layout-settings';
 export class AppComponent implements AfterViewInit, DoCheck {
   @ViewChild('canvas', { static: false }) canvasElementRef: ElementRef<HTMLCanvasElement>;
   canvas: HTMLCanvasElement;
-  canvasContext: CanvasRenderingContext2D;
 
+  canvasContext: CanvasRenderingContext2D;
+  canvasItemStyles: ItemStyles;
   gameStates: GameStates;
   layoutSettings: LayoutSettings;
 
   constructor(private ngZone: NgZone) {
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit(): void {
     this.initCanvas();
+    this.initCanvasItemStyles();
     this.initLayout();
     this.initGameStates();
     // Disable change detection when we draw on the canvas
@@ -86,15 +89,29 @@ export class AppComponent implements AfterViewInit, DoCheck {
     }
   }
 
+  private initCanvasItemStyles(): void {
+    this.canvasItemStyles = new ItemStyles();
+    this.canvasItemStyles.ballColor = '#014f69';
+    this.canvasItemStyles.paddleColor = '#014f69';
+    this.canvasItemStyles.brickGradientStart = '#8c0e06';
+    this.canvasItemStyles.brickGradientEnd = '#e81305';
+    this.canvasItemStyles.brickBorder = '#db7c00';
+    this.canvasItemStyles.scoreFont = '16px Arial';
+    this.canvasItemStyles.scoreColor = '#014f69';
+    this.canvasItemStyles.livesFont = '16px Arial';
+    this.canvasItemStyles.livesColor = '#014f69';
+    this.canvasItemStyles.canvasBackgroundColor = '#dedede';
+  }
+
 
   counter = 0;
-  ngDoCheck() {
+  ngDoCheck(): void {
     this.counter++;
     // console.log(this.counter);
   }
 
   @HostListener('window:keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
+  handleKeyDown(event: KeyboardEvent): void {
     if (event.code == 'ArrowRight') {
       this.gameStates.rightPressed = true;
     }
@@ -105,17 +122,17 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   @HostListener('window:keyup', ['$event'])
   handleKeyUp(event: KeyboardEvent): void {
-    if (event.code == 'ArrowRight') {
+    if (event.code === 'ArrowRight') {
       this.gameStates.rightPressed = false;
     }
-    else if (event.code == 'ArrowLeft') {
+    else if (event.code === 'ArrowLeft') {
       this.gameStates.leftPressed = false;
     }
   }
 
   @HostListener('window:mousemove', ['$event'])
   handleMouseMove(event: MouseEvent): void {
-    let relativeX = event.clientX - this.canvas.offsetLeft;
+    const relativeX = event.clientX - this.canvas.offsetLeft;
     if (relativeX > 0 && relativeX < this.canvas.width) {
       this.gameStates.paddleX = relativeX - this.layoutSettings.paddleWidth / 2;
     }
@@ -123,7 +140,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
 
   @HostListener('window:touchmove', ['$event'])
   handleTouchMove(event: TouchEvent): void {
-    let relativeX = event.touches[0].clientX - this.canvas.offsetLeft;
+    const relativeX = event.touches[0].clientX - this.canvas.offsetLeft;
     if (relativeX > 0 && relativeX < this.canvas.width) {
       this.gameStates.paddleX = relativeX - this.layoutSettings.paddleWidth / 2;
     }
@@ -132,16 +149,19 @@ export class AppComponent implements AfterViewInit, DoCheck {
   private collisionDetection(): void {
     for (let r = 0; r < this.layoutSettings.brickRowCount; r++) {
       for (let c = 0; c < this.layoutSettings.brickColumnCount; c++) {
-        let b = this.gameStates.bricks[r][c];
-        if (b.status == 1) {
-          if (this.gameStates.ballX > b.x && this.gameStates.ballX < b.x + this.layoutSettings.brickWidth && this.gameStates.ballY > b.y && this.gameStates.ballY < b.y + this.layoutSettings.brickHeight) {
+        const b = this.gameStates.bricks[r][c];
+        if (b.status === 1) {
+          if (this.gameStates.ballX > b.x && this.gameStates.ballX < b.x + this.layoutSettings.brickWidth &&
+            this.gameStates.ballY > b.y && this.gameStates.ballY < b.y + this.layoutSettings.brickHeight) {
+
             this.gameStates.ballDY = -this.gameStates.ballDY;
             b.status = 0;
             this.gameStates.score++;
-            if (this.gameStates.score == this.layoutSettings.brickColumnCount * this.layoutSettings.brickRowCount) {
-              alert("You Win, Congrats!");
+            if (this.gameStates.score === this.layoutSettings.brickColumnCount * this.layoutSettings.brickRowCount) {
+              alert('You Win, Congrats!');
               document.location.reload();
             }
+
           }
         }
       }
@@ -151,7 +171,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
   private drawBall(): void {
     this.canvasContext.beginPath();
     this.canvasContext.arc(this.gameStates.ballX, this.gameStates.ballY, this.layoutSettings.ballRadius, 0, Math.PI * 2);
-    this.canvasContext.fillStyle = "#014f69";
+    this.canvasContext.fillStyle = this.canvasItemStyles.ballColor;
     this.canvasContext.fill();
     this.canvasContext.closePath();
   }
@@ -159,7 +179,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
   private drawPaddle(): void {
     this.canvasContext.beginPath();
     this.canvasContext.rect(this.gameStates.paddleX, this.canvas.height - this.layoutSettings.paddleHeight, this.layoutSettings.paddleWidth, this.layoutSettings.paddleHeight);
-    this.canvasContext.fillStyle = "#014f69";
+    this.canvasContext.fillStyle = this.canvasItemStyles.paddleColor;
     this.canvasContext.fill();
     this.canvasContext.closePath();
   }
@@ -173,12 +193,12 @@ export class AppComponent implements AfterViewInit, DoCheck {
           this.gameStates.bricks[r][c].x = brickX;
           this.gameStates.bricks[r][c].y = brickY;
           let gradientFill = this.canvasContext.createLinearGradient(brickX, brickY, brickX + this.layoutSettings.brickWidth, brickY + this.layoutSettings.brickHeight);
-          gradientFill.addColorStop(0, "#8c0e06");
-          gradientFill.addColorStop(1, "#e81305");
+          gradientFill.addColorStop(0, this.canvasItemStyles.brickGradientStart);
+          gradientFill.addColorStop(1, this.canvasItemStyles.brickGradientEnd);
           this.canvasContext.beginPath();
           this.canvasContext.rect(brickX, brickY, this.layoutSettings.brickWidth, this.layoutSettings.brickHeight);
           this.canvasContext.fillStyle = gradientFill;
-          this.canvasContext.strokeStyle = "#db7c00";
+          this.canvasContext.strokeStyle = this.canvasItemStyles.brickBorder;
           this.canvasContext.lineWidth = 5;
           this.canvasContext.strokeRect(brickX, brickY, this.layoutSettings.brickWidth, this.layoutSettings.brickHeight);
           this.canvasContext.fill();
@@ -189,20 +209,20 @@ export class AppComponent implements AfterViewInit, DoCheck {
   }
 
   private drawScore(): void {
-    this.canvasContext.font = "16px Arial";
-    this.canvasContext.fillStyle = "#014f69";
-    this.canvasContext.fillText("Score: " + this.gameStates.score, 8, 20);
+    this.canvasContext.font = this.canvasItemStyles.scoreFont;
+    this.canvasContext.fillStyle = this.canvasItemStyles.scoreColor;
+    this.canvasContext.fillText('Score: ' + this.gameStates.score, 8, 20);
   }
 
   private drawLives(): void {
-    this.canvasContext.font = "16px Arial";
-    this.canvasContext.fillStyle = "#014f69";
-    this.canvasContext.fillText("Lives: " + this.gameStates.lives, this.canvas.width - 65, 20);
+    this.canvasContext.font = this.canvasItemStyles.livesFont;
+    this.canvasContext.fillStyle = this.canvasItemStyles.livesColor;
+    this.canvasContext.fillText('Lives: ' + this.gameStates.lives, this.canvas.width - 65, 20);
   }
 
   private draw(): void {
     this.canvasContext.clearRect(0, 0, this.canvas.width, this.canvas.height);
-    this.canvasContext.fillStyle = "#dedede";
+    this.canvasContext.fillStyle = this.canvasItemStyles.canvasBackgroundColor;
     this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.drawBricks();
     this.drawBall();
