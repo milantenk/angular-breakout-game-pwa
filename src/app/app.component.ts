@@ -146,6 +146,11 @@ export class AppComponent implements AfterViewInit, DoCheck {
     }
   }
 
+  @HostListener('window:orientationchange', ['$event'])
+  onOrientationChange(): void {
+    document.location.reload();
+  }
+
   // This is the function that is called by window.requestAnimationFrame()
   // this way this function is called every time in a loop till the game ends
   private draw(): void {
