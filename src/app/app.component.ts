@@ -193,7 +193,7 @@ export class AppComponent implements AfterViewInit {
     }
 
     this.gameStates.ballX += this.gameStates.ballDX;
-    this.gameStates.ballY += this.gameStates.ballDY;
+    this.gameStates.ballY += this.gameStates.ballDY
     window.requestAnimationFrame(this.draw.bind(this));
   }
 
