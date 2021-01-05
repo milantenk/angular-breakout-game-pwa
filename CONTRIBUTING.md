@@ -8,7 +8,7 @@ If needed please check out one of the getting started guides about GitHub fork /
   * [How to sync your fork](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
 
 ## Sending pull requests
-Before you start to work on a topic please create an issue and let's discuss what are you going to contribute. Pull requests can be sent against the `master` branch.
+Before you start to work on a topic please create an issue and let's discuss what are you going to contribute. Pull requests can be sent against the `main` branch.
 
 ## Coding Guidelines
 In the project follows the [styleguide of Angular](https://angular.io/guide/styleguide).
