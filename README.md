@@ -1,27 +1,27 @@
-# AngularBreakoutGamePwa
+# Angular Breakout Game PWA
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.0.5.
+This is an experimental project using Canvas API, Angular and Service Worker.
+It implements a simple breakout game as a Progressive Web Application.
+A live demo can be found here: https://angular-breakout-game-pwa.netlify.app/.
+<p align="center">
+    <img src="screenshot.jpg" alt="Demo image"/>
+</p>
 
-## Development server
+# Prerequisite
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+The application is developed using `Angular 11` so `Node.js 10.13.x/12.11.x or later minor` needs to be installed. 
 
-## Code scaffolding
+# Install thirdparty dependencies
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+To install the necessary dependencies run `npm install`.
 
-## Build
+## Starting the development server
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Run `npm run start` for a dev server and navigate to `http://localhost:4200/`. 
 
-## Running unit tests
+## Starting the PWA
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+The Service Worker is not used when the development server is running. To check out the PWA features run `npm run start:prod`. This command builds the application in production mode and starts a http server with the build output. To check the app navigate to `http://localhost:8080/`.
 
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+# Reference
+The project got started using snippets of following pure `JavaScript` based code examples: https://github.com/end3r/Gamedev-Canvas-workshop.
