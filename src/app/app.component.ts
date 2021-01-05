@@ -146,7 +146,7 @@ export class AppComponent implements AfterViewInit, DoCheck {
     }
   }
 
-  @HostListener('window:orientationchange', ['$event'])
+  @HostListener('window:orientationchange')
   onOrientationChange(): void {
     document.location.reload();
   }
