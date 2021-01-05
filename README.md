@@ -1,7 +1,7 @@
 # Angular Breakout Game PWA
 
 This is an experimental project using Canvas API, Angular and Service Worker.
-It implements a simple breakout game as a progressive web application.
+It implements a simple breakout game as a Progressive Web Application.
 A live demo can be found here: https://angular-breakout-game-pwa.netlify.app/.
 <p align="center">
     <img src="screenshot.jpg" alt="Demo image"/>
