@@ -1,6 +1,7 @@
 # Angular Breakout Game PWA
 
-A breakout game in Angular framework as a progressive web application.
+This is an experimental project using Canvas API, Angular and Service Worker.
+It implements a simple breakout game as progressive web application.
 
 # Prerequisite
 
@@ -17,3 +18,6 @@ Run `npm run start` for a dev server and navigate to `http://localhost:4200/`.
 ## Starting the PWA
 
 The Service Worker is not used when the development server is running. To check out the PWA features run `npm run start:prod`. This command builds the application in production mode and starts a http server with the build output. To check the app navigate to `http://localhost:8080/`.
+
+# Reference
+The project got started using snippets of following pure `JavaScript` based code examples: https://github.com/end3r/Gamedev-Canvas-workshop.

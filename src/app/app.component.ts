@@ -18,10 +18,10 @@ import { LayoutSettings } from './shared/layout-settings';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements AfterViewInit, DoCheck {
+export class AppComponent implements AfterViewInit {
 
-  constructor(private ngZone: NgZone) {
-  }
+  constructor(private ngZone: NgZone) {}
+
   @ViewChild('canvas', { static: false }) canvasElementRef: ElementRef<HTMLCanvasElement>;
   canvas: HTMLCanvasElement;
 
@@ -29,9 +29,6 @@ export class AppComponent implements AfterViewInit, DoCheck {
   canvasItemStyles: ItemStyles;
   gameStates: GameStates;
   layoutSettings: LayoutSettings;
-
-
-  counter = 0;
 
   ngAfterViewInit(): void {
     this.initCanvas();
@@ -104,10 +101,6 @@ export class AppComponent implements AfterViewInit, DoCheck {
     this.canvasItemStyles.livesFont = '16px Arial';
     this.canvasItemStyles.livesColor = '#014f69';
     this.canvasItemStyles.canvasBackgroundColor = '#dedede';
-  }
-  ngDoCheck(): void {
-    this.counter++;
-    // console.log(this.counter);
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -275,10 +268,9 @@ export class AppComponent implements AfterViewInit, DoCheck {
             b.status = 0;
             this.gameStates.score++;
             if (this.gameStates.score === this.layoutSettings.brickColumnCount * this.layoutSettings.brickRowCount) {
-              alert('You Win, Congrats!');
+              alert('You Win!');
               document.location.reload();
             }
-
           }
         }
       }
