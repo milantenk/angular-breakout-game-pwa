@@ -7,11 +7,12 @@ A live demo can be found here: https://angular-breakout-game-pwa.netlify.app/.
     <img src="screenshot.jpg" alt="Demo image"/>
 </p>
 
-# Prerequisite
+# Development of the project
+## Prerequisite
 
 The application is developed using `Angular 11` so `Node.js 10.13.x/12.11.x or later minor` needs to be installed. 
 
-# Install thirdparty dependencies
+## Install thirdparty dependencies
 
 To install the necessary dependencies run `npm install`.
 
